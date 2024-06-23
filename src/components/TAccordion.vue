@@ -1,5 +1,4 @@
 <template>
-  <!-- struktura accordionu -->
   <div class="accordion">
     <div class="accordion-item" v-for="(item, index) in accData">
       <div class="header">
@@ -8,64 +7,48 @@
           <span @click="onClick(index)">></span>
         </div>
       </div>
-      <div class="content">
-        <transition name="accordion" @before-enter="console.log('before-enter')" @after-enter="console.log('after-enter')">
-          <div v-if="show[index]" class="inner">
-              {{  contents[index] }}
-          </div>
-        </transition>
-      </div>
+      <transition name="accordion" @before-enter="console.log('before-enter')" @after-enter="console.log('after-enter')">
+        <div class="content" v-if="show[index]">
+            <div class="inner">
+                {{  contents[index] }}
+            </div>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
 
 
-<script>
-import { getData } from '@/data.js';
+<script setup>
+import { getData } from '@/data.js'
+import { ref, onBeforeMount } from 'vue'
 
+const props = defineProps({
+  accData: Array
+})
 
-export default {
-  name: 'TAccordion',
-  props: {
-    accData: Array
-  },
-  data () {
-    return {
-      show: [],
-      contents: []
+const show = ref([])
+const contents = ref([])
+
+onBeforeMount (() => {
+  props.accData.forEach(() => {
+    show.value.push(false)
+    contents.value.push('')
+  })
+})
+
+const onClick = (index) => {
+  show.value.forEach((item, i) => {
+    if (index !== i || show.value[index]) {
+      show.value[i] = false
+      return
     }
-  },
-  created () {
-    // for(let i = 0; i < this.accData.length; i ++) {
-    //   this.show.push(false)
-    // }
-    this.accData.forEach(() => {
-      this.show.push(false)
-      this.contents.push('')
-    })
-  },
-  methods: {
-    onClick (index) {
-      // this.show.forEach((item, i) => {
-      //   this.show[i] = i === index ? !this.show[i] : false
-      // })
-      this.show.forEach((item, i) => {
-        if (index !== i) {
-          this.show[i] = false
-          return
-        }
-        if (this.show[index]) {
-          this.show[index] = false
-          return
-        }
-        getData(this.accData[index].id)
-          .then(content => {
-            this.contents[index] = content
-            this.show[index] = true
-          })
+    getData(props.accData[index].id)
+      .then(result => {
+        contents.value[index] = result
+        show.value[index] = true
       })
-    }
-  }
+  })
 }
 
 </script>
@@ -82,6 +65,8 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding: 1rem;
+  background: #efefef;
 }
 .accordion-item:last-child {
   border-bottom: none;
@@ -90,10 +75,10 @@ export default {
   display: flex;
   height: 3rem;
   background: #efefef;
+
 }
 .header-title {
   flex-grow: 1;
-  padding: 1rem;
   display: flex;
   align-items: center;
   font-weight: bold;
@@ -114,38 +99,33 @@ export default {
   transform: rotate(90deg)
 }
 .content {
-  border-top: 1px solid #ababab;
+  box-sizing: border-box;
   overflow: hidden;
-  height: auto;
-  background: lightpink;
-  transition: all .2s linear;
+  display: grid;
 }
 .inner {
-  background: lightgreen;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
 .accordion-enter-from {
-  opacity: 0;
-  max-height: 0;
+  grid-template-rows: 0fr;
 }
 .accordion-enter-to {
-  opacity: 1;
-  /* height: 100%; */
-  max-height: 2rem;
+  grid-template-rows: 1fr;
+
 }
 .accordion-leave-from {
-  opacity: 1;
-  max-height: 2rem;
+  grid-template-rows: 1fr;
+
 }
 .accordion-leave-to {
-  opacity: 0;
-  max-height: 0rem;
+  grid-template-rows: 0fr;
 }
 .accordion-enter-active {
-  transition: all 2s ease
+  transition: all 2s ease;
 }
 .accordion-leave-active {
-  transition: all 2s ease
+  transition: all 2s ease;
 }
 </style>
